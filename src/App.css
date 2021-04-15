@@ -1,26 +1,24 @@
-.name {
-  color: #36c;
-  font-size: 64px;
-  line-height: 1em;
-  margin: 1em 0 0 0;
+header {
+  margin-top: 3em;
   text-align: center;
 }
 
-.entry {
-  align-items: center;
-  color: #333;
-  display: flex;
-  flex-direction: row;
-  font-size: 24px;
-  justify-content: center;
+h1 {
+  font-size: 64px;
+  font-weight: 300;
+  line-height: 1em;
+  margin: 0;
 }
 
-.entry-detail {
-  width: 300px;
+h2 {
+  color: #666;
+  font-size: 48px;
+  margin: 0;
 }
 
 h3 {
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -31,16 +29,52 @@ h4 {
   margin: 0;
 }
 
-.entry-skycon {
-  flex-shrink: 0;
-  height: 64px;
-  width: 128px;
+a {
+  border-bottom: solid 1px #999;
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
 }
 
-.summary {
-  margin: 5em 0;
+article,
+footer {
+  margin: 3em 0;
+}
+
+footer {
+  text-align: center;
+}
+
+.hot {
+  color: #c63;
+}
+
+.cold {
+  color: #36c;
 }
 
 .entry {
-  margin: 1em 0;
+  align-items: start;
+  color: #333;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 2em 0;
+}
+
+.emoji {
+  background-color: #eee;
+  border-radius: 64px;
+  flex-shrink: 0;
+  font-size: 32px;
+  height: 64px;
+  line-height: 64px;
+  margin-right: 15px;
+  text-align: center;
+  width: 64px;
+}
+
+.detail {
+  flex-grow: 1;
+  max-width: 300px;
 }
