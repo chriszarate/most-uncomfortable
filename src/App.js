@@ -21,11 +21,15 @@ export default function App() {
 				{
 					summary.map( ( item, i ) => (
 						<div className="entry" key={i}>
-							<div className="emoji">
-								{item.emoji}
+							<div className="left">
+								<div className="emoji">
+									{item.emoji}
+								</div>
 							</div>
 							<div className="detail">
-								<h3><strong>{item.name}</strong> {item.verb} in <a href={item.locationLink} target="_blank">{item.location}</a> where it’s <a href={item.weatherLink} target="_blank">{item.weather}</a>.</h3>
+								<h3>{item.name}</h3>
+								<h4><a href={item.weatherLink} target="_blank">{item.weather}</a>, <a href={item.locationLink} target="_blank">{item.location}</a></h4>
+								<h4><span className="time">{item.localTime}</span></h4>
 							</div>
 						</div>
 					) )
