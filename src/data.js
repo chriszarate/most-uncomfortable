@@ -62,7 +62,7 @@ function padNum( num ) {
 
 function getSummary( results ) {
 	const now = new Date();
-	const utcDayString = `${now.getUTCFullYear()}-${padNum( now.getUTCMonth() + 1 )}-${padNum( now.getUTCDate() )}`;
+	const utcDayString = `${now.getUTCFullYear()}/${padNum( now.getUTCMonth() + 1 )}/${padNum( now.getUTCDate() )}`;
 
 	const summary = results.map( result => {
 		const {
@@ -76,7 +76,7 @@ function getSummary( results ) {
 		} = result;
 		
 		const utcObsTime = new Date( `${utcDayString} ${current.observation_time}` );
-		const localObsTime = new Date( current.localObsDateTime );
+		const localObsTime = new Date( current.localObsDateTime.replace( /-/g, '/' ) );
 		const offset = localObsTime - utcObsTime;
 		const localTimeCalc = new Date( Date.now() + offset );
 
