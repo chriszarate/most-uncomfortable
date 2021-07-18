@@ -3,32 +3,6 @@ import sheetrock from 'sheetrock';
 import sortBy from 'sort-by';
 import config from './config';
 
-function getTerms() {
-	const domain = window.location.hostname.replace( /^[^.]+\./, '' );
-
-	if ( 'cold' === config.type ) {
-		return {
-			emoji: '🥶',
-			oppositeLink: `https://hottest.${domain}`,
-			oppositeSuperlative: 'hottest',
-			sortKey: 'temp',
-			superlative: 'coldest',
-		};
-	}
-
-	if ( 'hot' === config.type ) {
-		return {
-			emoji: '🥵',
-			oppositeLink: `https://coldest.${domain}`,
-			oppositeSuperlative: 'coldest',
-			sortKey: '-temp',
-			superlative: 'hottest',
-		};
-	}
-
-	throw new Error( `Unknown type: ${config.type}` );
-}
-
 function getPlaces() {
 	return new Promise( ( resolve, reject ) => {
 		sheetrock( {
@@ -82,9 +56,16 @@ function getSummary( results ) {
 
 		let hour = localTimeCalc.getUTCHours();
 		let meridien = 'am';
+		if ( 0 === hour ) {
+			hour = 12;
+		}
+
+		if ( hour >= 12 ) {
+			meridien = 'pm';
+		}
+
 		if ( hour > 12 ) {
 			hour = hour - 12;
-			meridien = 'pm';
 		}
 
 		const localTime = `${hour}:${padNum(localTimeCalc.getUTCMinutes())}${meridien}`;
@@ -117,12 +98,8 @@ function getSummary( results ) {
 		};
 	} );
 
-	summary.sort( sortBy( terms.sortKey ) );
-
 	return summary;
 }
-
-export const terms = getTerms();
 
 function getSummaries() {
 	console.log( 'updating...' );
@@ -145,7 +122,7 @@ function getSummaries() {
 		.then( results => results.filter( result => result.weather ) );
 }
 
-export function useSummary() {
+export function useSummary( sortKey ) {
 	const [ summary, setSummary ] = useState( null );
 
 	useEffect( () => {
@@ -161,5 +138,5 @@ export function useSummary() {
 		return () => clearInterval( timer );
 	}, [] );
 
-	return summary;
+	return summary ? summary.sort( sortBy( sortKey ) ) : null;
 }

@@ -1,19 +1,13 @@
 header {
-  margin-top: 3em;
-  text-align: center;
+  margin-top: 2em;
 }
 
 h1 {
-  font-size: 64px;
-  font-weight: 300;
+  border-bottom: solid 3px #000;
+  font-size: 32px;
   line-height: 1em;
   margin: 0;
-}
-
-h2 {
-  color: #666;
-  font-size: 48px;
-  margin: 0;
+  padding-bottom: 5px;
 }
 
 h3 {
@@ -31,25 +25,24 @@ h4 {
 a {
   color: inherit;
   font-weight: 500;
-  text-underline-offset: 1px;
+  text-decoration: none;
   text-decoration-color: #333;
+  text-underline-offset: 1px;
 }
 
-article,
-footer {
-  margin: 3em 0;
+h4 a:hover {
+  text-decoration: underline;
+}
+
+article {
+  padding: 1em 0;
 }
 
 footer {
+  cursor: pointer;
+  font-size: 32px;
+  margin-bottom: 1em;
   text-align: center;
-}
-
-.hot {
-  color: #c33;
-}
-
-.cold {
-  color: #33c;
 }
 
 .entry {
@@ -69,7 +62,7 @@ footer {
 }
 
 .emoji {
-  background-color: #eee;
+  background-color: rgba(0, 0, 0, 10%);
   border-radius: 64px;
   font-size: 32px;
   height: 64px;
@@ -80,7 +73,15 @@ footer {
 
 .detail {
   flex-grow: 1;
-  max-width: 300px;
+  max-width: 230px;
+}
+
+.hot {
+  background-color: #fcc;
+}
+
+.cold {
+  background-color: #cef;
 }
 
 .time {
