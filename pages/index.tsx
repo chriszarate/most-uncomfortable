@@ -21,12 +21,12 @@ export default function Home( props: Props ) {
 	return (
 		<main>
 			<Head>
-				<title>Hello</title>
-			</Head>
+				<title>The {'hot' === type ? 'Hottest' : 'Coldest'}</title>
 				{
 					'hot' === type &&
 						<style dangerouslySetInnerHTML={{ __html: ':root { --color-temp: #fcc; }' }} />
 				}
+			</Head>
 			<article>
 				{
 					reports.map( report => (
