@@ -21,7 +21,7 @@ export default function Home( props: Props ) {
 	return (
 		<main>
 			<Head>
-				<title>The {'hot' === type ? 'Hottest' : 'Coldest'}</title>
+				<title>The {'hot' === type ? 'Hottest' : 'Coldest'} {process.env.FAMILY_NAME}</title>
 				{
 					'hot' === type &&
 						<style dangerouslySetInnerHTML={{ __html: ':root { --color-temp: #fcc; }' }} />
