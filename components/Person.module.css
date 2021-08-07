@@ -1,0 +1,35 @@
+.entry {
+  align-items: start;
+  color: #333;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 2em 0;
+}
+
+.left {
+  flex-shrink: 0;
+  margin-right: 15px;
+  text-align: center;
+  width: 64px;
+}
+
+.emoji {
+  background-color: rgba(0, 0, 0, 10%);
+  border-radius: 64px;
+  font-size: 32px;
+  height: 64px;
+  line-height: 64px;
+  text-align: center;
+  width: 64px;
+}
+
+.detail {
+  flex-grow: 1;
+  max-width: 300px;
+}
+
+.time {
+  color: #666;
+  font-size: 0.9em;
+}

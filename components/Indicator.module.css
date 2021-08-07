@@ -1,0 +1,30 @@
+.flag {
+  background-color: #666;
+  border-radius: 5px;
+  color: white;
+  font-size: 0.75em;
+  margin-right: 5px;
+  padding: 2px 4px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ok {
+  background-color: #03A652;
+}
+
+.warning {
+  background-color: #FDAF16;
+}
+
+.high {
+  background-color: #F25822;
+}
+
+.danger {
+  background-color: #D81920;
+}
+
+.epic {
+  background-color: #664DA3;
+}
