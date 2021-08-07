@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSummary } from './data';
+import { useAqi, usePeople } from './data';
 import Loading from './Loading';
 import './App.css';
 
@@ -14,21 +14,73 @@ const terms = {
 	},
 };
 
-function Entry ( { item } ) {
+function AQI ( { lat, long } ) {
+	const aqi = useAqi( lat, long );
+
+	if ( ! aqi ) {
+		return <span className="flag unknown">AQI ▒</span>;
+	}
+
+	let level = 'low';
+	if ( aqi > 200 ) {
+		level = 'ohno';
+	} else if ( aqi > 150 ) {
+		level = 'awful';
+	} else if ( aqi > 100 ) {
+		level = 'high';
+	} else if ( aqi > 50 ) {
+		level = 'medium';
+	}
+
+	return <span className={`flag ${level}`}>AQI {aqi}</span>
+}
+
+function UV ( { uv } ) {
+	if ( ! uv ) {
+		return <span className="flag unknown">UV ▒</span>;
+	}
+
+	let level = 'low';
+	if ( uv > 10 ) {
+		level = 'ohno';
+	} else if ( uv > 7 ) {
+		level = 'awful';
+	} else if ( uv > 5 ) {
+		level = 'high';
+	} else if ( uv > 2 ) {
+		level = 'medium';
+	}
+
+	return <span className={`flag ${level}`}>UV {uv}</span>;
+}
+
+function Weather( { weather } ) {
+	return (
+		<div>
+			<h4>
+				<a href={weather.weatherLink} target="_blank">{weather.weather}</a>
+				<AQI lat={weather.lat} long={weather.long} />
+				<UV uv={weather.uv} />
+			</h4>
+			<h4 className="time">
+				{`${weather.localTime} `}
+				in <a href={weather.locationLink} target="_blank">{weather.shortLocation}</a>
+			</h4>
+		</div>
+	);
+}
+
+function Person ( { emoji, location, name, weather } ) {
 	return (
 		<div className="entry">
 			<div className="left">
 				<div className="emoji">
-					{item.emoji}
+					{emoji}
 				</div>
 			</div>
 			<div className="detail">
-				<h3>{item.name}</h3>
-				<h4><a href={item.weatherLink} target="_blank">{item.weather}</a></h4>
-				<h4 className="time">
-					{`${item.localTime} `}
-					in <a href={item.locationLink} target="_blank">{item.location}</a>
-				</h4>
+				<h3>{name}</h3>
+				<Weather weather={weather} />
 			</div>
 		</div>
 	);
@@ -40,7 +92,7 @@ export default function App() {
 	const oppositeType = 'cold' === type ? 'hot' : 'cold';
 
 	const { emoji, sortKey } = terms[ type ];
-	const summary = useSummary( sortKey );
+	const people = usePeople( sortKey );
 
 	function toggleType () {
 		document.body.classList.add( oppositeType );
@@ -49,7 +101,7 @@ export default function App() {
 		setType( oppositeType );
 	}
 
-	if ( ! summary ) {
+	if ( ! people ) {
 		return <Loading emoji={emoji} />;
 	}
 
@@ -57,7 +109,15 @@ export default function App() {
 		<main>
 			<article>
 				{
-					summary.map( ( item, i ) => <Entry item={item} key={i} /> )
+					people.map( ( person, i ) => (
+						<Person
+							emoji={person.emoji}
+							location={person.location}
+							key={person.name}
+							name={person.name}
+							weather={person}
+						/>
+					) )
 				}
 			</article>
 			<footer onClick={toggleType}>🔀</footer>

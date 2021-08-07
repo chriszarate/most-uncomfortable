@@ -3,7 +3,20 @@ import sheetrock from 'sheetrock';
 import sortBy from 'sort-by';
 import config from './config';
 
-function getPlaces() {
+const aqiApiKey = 'b9381ee3-fc6e-447a-8d5c-20531fdce8ce';
+const aqiEndpoint = 'https://api.airvisual.com/v2/nearest_city';
+
+function getAqi( lat, long ) {
+	if ( ! lat || ! long ) {
+		return null;
+	}
+	
+	return fetch( `${aqiEndpoint}?lat=${lat}&lon=${long}&key=${aqiApiKey}` )
+		.then( response => response.json() )
+		.then( data => data.data.current.pollution.aqius );
+}
+
+function getPeople() {
 	return new Promise( ( resolve, reject ) => {
 		sheetrock( {
 			url: config.sheetUrl,
@@ -24,111 +37,116 @@ function getPlaces() {
 	} );
 }
 
-function getWeather( location ) {
-	return fetch( `https://wttr.in/${encodeURIComponent( location )}?format=j1` )
-		.then( response => response.json() )
-		.catch( () => null );
-}
-
 function padNum( num ) {
 	return num < 10 ? `0${num}` : num;
 }
 
-function getSummary( results ) {
+function getSummary( weather, location ) {
 	const now = new Date();
 	const utcDayString = `${now.getUTCFullYear()}/${padNum( now.getUTCMonth() + 1 )}/${padNum( now.getUTCDate() )}`;
 
-	const summary = results.map( result => {
-		const {
-			emoji,
-			name,
-			location,
-			weather: {
-				current_condition: [ current ],
-				nearest_area: [ area ],
-			},
-		} = result;
-		
-		const utcObsTime = new Date( `${utcDayString} ${current.observation_time}` );
-		const localObsTime = new Date( current.localObsDateTime.replace( /-/g, '/' ) );
-		const offset = localObsTime - utcObsTime;
-		const localTimeCalc = new Date( Date.now() + offset );
+	const {
+		current_condition: [ current ],
+		nearest_area: [ area ],
+	} = weather;
 
-		let hour = localTimeCalc.getUTCHours();
-		let meridien = 'am';
-		if ( 0 === hour ) {
-			hour = 12;
-		}
+	const utcObsTime = new Date( `${utcDayString} ${current.observation_time}` );
+	const localObsTime = new Date( current.localObsDateTime.replace( /-/g, '/' ) );
+	const offset = localObsTime - utcObsTime;
+	const localTimeCalc = new Date( Date.now() + offset );
 
-		if ( hour >= 12 ) {
-			meridien = 'pm';
-		}
+	let hour = localTimeCalc.getUTCHours();
+	let meridien = 'am';
+	if ( 0 === hour ) {
+		hour = 12;
+	} else if ( hour >= 12 ) {
+		meridien = 'pm';
+	}
 
-		if ( hour > 12 ) {
-			hour = hour - 12;
-		}
+	if ( hour > 12 ) {
+		hour = hour - 12;
+	}
 
-		const localTime = `${hour}:${padNum(localTimeCalc.getUTCMinutes())}${meridien}`;
+	const localTime = `${hour}:${padNum(localTimeCalc.getUTCMinutes())}${meridien}`;
 
-		let feelsLike = '';
-		if ( Math.abs( current.FeelsLikeF - current.temp_F ) > 5 ) {
-			feelsLike = `${current.FeelsLikeF}°`;
-		}
+	let feelsLike = '';
+	if ( Math.abs( current.FeelsLikeF - current.temp_F ) > 5 ) {
+		feelsLike = `${current.FeelsLikeF}°`;
+	}
 
-		let joiner = 'with';
-		if ( current.weatherCode < 130 ) {
-			joiner = 'and';
-		}
+	let joiner = 'with';
+	if ( current.weatherCode < 130 ) {
+		joiner = 'and';
+	}
 
-		const latlong = `${area.latitude},${area.longitude}`;
-		const plural = name.includes( '&' ) || name.includes( ' and ' );
-		const condition = current.weatherDesc[0].value.toLowerCase().replace( /shower$/, 'showers' );
+	const latlong = `${area.latitude},${area.longitude}`;
+	const condition = current.weatherDesc[0].value.toLowerCase().replace( /shower$/, 'showers' );
 
-		return {
-			emoji,
-			feelsLike,
-			localTime,
-			location: location.replace( /,\s[A-Z]{2}$/, '' ),
-			locationLink: `https://www.google.com/maps/@${latlong},12z`,
-			name,
-			plural,
-			temp: current.temp_F,
-			weather: `${current.temp_F}° ${joiner} ${condition}`,
-			weatherLink: `https://darksky.net/forecast/${latlong}/us12/en`,
-		};
-	} );
-
-	return summary;
+	return {
+		feelsLike,
+		lat: area.latitude,
+		localTime,
+		locationLink: `https://www.google.com/maps/@${latlong},12z`,
+		long: area.longitude,
+		shortLocation: location.replace( /,\s[A-Z]{2}$/, '' ),
+		temp: current.temp_F,
+		weather: `${current.temp_F}° ${joiner} ${condition}`,
+		weatherLink: `https://darksky.net/forecast/${latlong}/us12/en`,
+		uv: current.uvIndex,
+	};
 }
 
-function getSummaries() {
+function getWeather( location ) {
+	if ( ! location ) {
+		return null;
+	}
+
+	return fetch( `https://wttr.in/${encodeURIComponent( location )}?format=j1` )
+		.then( response => response.json() );
+}
+
+function getPeopleAndWeather() {
 	console.log( 'updating...' );
-	return getPlaces()
-		.then( places => Promise.all(
-			places.map( ( [ name, location, _, emoji ] ) => {
+	return getPeople()
+		.then( people => Promise.all(
+			people.map( ( [ name, location, _, emoji ] ) => {
 				if ( ! name || ! location ) {
 					return {};
 				}
 
 				return getWeather( location )
 					.then( weather => ( {
+						...getSummary( weather, location ),
 						emoji,
 						name,
 						location,
-						weather,
 					} ) );
 			} )
 		) )
 		.then( results => results.filter( result => result.weather ) );
 }
 
-export function useSummary( sortKey ) {
-	const [ summary, setSummary ] = useState( null );
+export function useAqi( lat, long ) {
+	const [ aqi, setAqi ] = useState( null );
+
+	useEffect( () => {
+		if ( ! lat || ! long ) {
+			return;
+		}
+
+		getAqi( lat, long ).then( setAqi );
+	}, [ lat, long ] );
+
+	return aqi;
+}
+
+export function usePeople( sortKey ) {
+	const [ people, setPeople ] = useState( null );
 
 	useEffect( () => {
 		function update() {
-			getSummaries()
-				.then( results => setSummary( getSummary( results ) ) )
+			getPeopleAndWeather()
+				.then( setPeople )
 				.catch( console.error );
 		}
 
@@ -138,5 +156,5 @@ export function useSummary( sortKey ) {
 		return () => clearInterval( timer );
 	}, [] );
 
-	return summary ? summary.sort( sortBy( sortKey ) ) : null;
+	return people ? people.sort( sortBy( sortKey ) ) : null;
 }

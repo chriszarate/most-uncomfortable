@@ -73,7 +73,7 @@ footer {
 
 .detail {
   flex-grow: 1;
-  max-width: 230px;
+  max-width: 300px;
 }
 
 .hot {
@@ -82,6 +82,37 @@ footer {
 
 .cold {
   background-color: #cef;
+}
+
+.flag {
+  background-color: #666;
+  border-radius: 5px;
+  color: white;
+  font-size: 0.75em;
+  margin-left: 5px;
+  padding: 2px 4px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.flag.low {
+  background-color: #03A652;
+}
+
+.flag.medium {
+  background-color: #FDAF16;
+}
+
+.flag.high {
+  background-color: #F25822;
+}
+
+.flag.awful {
+  background-color: #D81920;
+}
+
+.flag.ohno {
+  background-color: #664DA3;
 }
 
 .time {
