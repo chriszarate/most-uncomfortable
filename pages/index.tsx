@@ -39,10 +39,10 @@ export default function Home( props: Props ) {
 	);
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async context => {
+export const getServerSideProps: GetServerSideProps<Props> = async () => {
 	return {
 		props: {
-			sortKey: 'temp',
+			sortKey: '-temp',
 			reports: await getWeatherReports(),
 		},
 	};
