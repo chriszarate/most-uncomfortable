@@ -1,7 +1,9 @@
 import styles from './Indicator.module.css';
 
 type Props = {
-	name: string,
+	label?: string,
+	main: boolean,
+	mainLabel?: string,
 	thresholds: [
 		number,
 		number,
@@ -9,27 +11,35 @@ type Props = {
 		number,
 	],
 	unit?: string,
-	value?: number,
+	value: number,
 };
 
 export default function Indicator ( props: Props ) {
-	if ( ! props.value ) {
-		return <span className={styles.flag}>{props.name} ▒</span>;
-	}
-
 	const [ warning, high, danger, epic ] = props.thresholds;
 	const value = `${Math.round(props.value)}${props.unit || ''}`;
 
 	let level = 'ok';
-	if ( props.value > epic ) {
+	if ( props.value >= epic ) {
 		level = 'epic';
-	} else if ( props.value > danger ) {
+	} else if ( props.value >= danger ) {
 		level = 'danger';
-	} else if ( props.value > high ) {
+	} else if ( props.value >= high ) {
 		level = 'high';
-	} else if ( props.value > warning ) {
+	} else if ( props.value >= warning ) {
 		level = 'warning';
 	}
 
-	return <span className={`${styles.flag} ${styles[ level ]}`}>{props.name} {value}</span>;
+	if ( props.main ) {
+		return (
+			<div className={`${styles[ level ]} ${styles.main}`}>
+				<div className={styles.flag}>{value}</div>
+				{
+					( props.label || props.mainLabel ) &&
+						<div className={styles.label}>{props.mainLabel || props.label}</div>
+				}
+			</div>
+		)
+	}
+
+	return <div className={`${styles[ level ]} ${styles.flag}`}>{props.label} {value}</div>
 }

@@ -1,27 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getPeople, Person } from './people';
+import { getPeople } from './people';
 import { notEmpty } from '../../lib/utils';
 import InMemoryCache from '../../lib/in-memory-cache';
 
 const cache = new InMemoryCache( true );
-
-export type WeatherReport = Person & {
-	aqi: number,
-	coords: {
-		lat: number,
-		long: number,
-	},
-	currentCondition: string,
-	feelsLike?: number,
-	humidity: number,
-	links: {
-		location: string,
-		weather: string,
-	},
-	localTime: string,
-	temp: number,
-	uv: number,
-};
 
 export default async function handler(
   _req: NextApiRequest,
@@ -47,7 +29,7 @@ async function getRawWeather( location: string ) {
 
 	const { data: [ weather ] } = await fetch( `${baseUrl}?${params}` ).then( response => response.json() );
 
-	cache.set( location, weather, 30 );
+	cache.set( location, weather, 3000 );
 
 	return weather;
 }
@@ -67,18 +49,11 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport | nul
 		timezone: timeZone,
 		uv,
 		weather: {
-			code,
 			description,
 		},
 	} = await getRawWeather( person.location );
 
-	let joiner = 'with';
-	if ( code < 130 ) {
-		joiner = 'and';
-	}
-
 	const latlong = `${lat},${long}`;
-	const condition = description.toLowerCase();
 	const localTime = new Date()
 		.toLocaleTimeString( 'en-US', { timeZone } )
 		.replace( /^(\d+:\d+):\d+ ([A-z]+)/, '$1$2' )
@@ -91,7 +66,7 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport | nul
 			lat,
 			long,
 		},
-		currentCondition: `${temp}° ${joiner} ${condition}`,
+		currentCondition: description.toLowerCase(),
 		feelsLike,
 		humidity,
 		links: {

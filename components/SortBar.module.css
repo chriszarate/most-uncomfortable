@@ -1,0 +1,38 @@
+.container {
+  margin-top: 3em;
+}
+
+.button {
+  border-color: var(--color-blue);
+  border-style: solid;
+  border-width: 1px 0 1px 1px;
+  color: var(--color-blue);
+  font-size: 0.9em;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.button:last-child {
+  border-radius: 0 5px 5px 0;
+  border-right-width: 1px;
+}
+
+.asc,
+.desc {
+  background-color: var(--color-blue);
+  color: #fff;
+}
+
+.asc::after {
+  content: ' ▲';
+  display: 'inline';
+}
+
+.desc::after {
+  content: ' ▼';
+  display: 'inline';
+}

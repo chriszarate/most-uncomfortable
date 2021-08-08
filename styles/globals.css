@@ -1,12 +1,9 @@
 body {
-  background-color: var( --color-temp, #cef );
-  margin: 1em;
-  padding: 0;
+  background-color: var(--color-bg, #f0f0f0);
+  color: var(--color-text, #000000);
   font-family: -apple-system, system-ui, sans-serif;
-}
-
-header {
-  margin-top: 2em;
+  margin: 0;
+  padding: 1.5em;
 }
 
 h3 {
@@ -29,12 +26,13 @@ a {
   text-underline-offset: 1px;
 }
 
-h4 a:hover {
+a:hover {
   text-decoration: underline;
 }
 
 article {
-  padding: 1em 0;
+  margin: 0 auto;
+  max-width: 575px;
 }
 
 footer {
@@ -42,4 +40,28 @@ footer {
   font-size: 32px;
   margin-bottom: 1em;
   text-align: center;
+}
+
+:root {
+  --color-blue: #556688;
+  --color-green: #1da91c;
+  --color-orange: #cf5c00;
+  --color-purple: #88158a;
+  --color-red: #c60000;
+  --color-yellow: #cc9b00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111111;
+    --color-text: #f0f0f0;
+    --color-text-light: #999;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  body {
+    font-size: 0.85rem;
+    padding: 0.5em 1.5em;
+  }
 }

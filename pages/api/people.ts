@@ -1,13 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import sheetrock from 'sheetrock';
 
-export type Person = {
-	emoji: string,
-	location: string,
-	name: string,
-	shortLocation: string,
-};
-
 type SheetRow = {
 	cellsArray: string[],
 };

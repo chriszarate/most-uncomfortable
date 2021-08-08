@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { sortBy } from 'sort-by-typescript';
-import { WeatherReport } from '../pages/api/weather';
 
 function getReports(): Promise<WeatherReport[]> {
 	return fetch( '/api/weather' )
 		.then( response => response.json() );
 }
 
-export function useAutoUpdatingWeather( ssrReports: WeatherReport[], type: 'hot' | 'cold' ) {
+export function useAutoUpdatingWeather( ssrReports: WeatherReport[], sortKey: string ) {
   const [ reports, setReports ] = useState<WeatherReport[]>( ssrReports );
-	const sortKey = 'hot' === type ? '-temp' : 'temp';
 
 	useEffect( () => {
 		function update(): void {

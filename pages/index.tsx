@@ -1,31 +1,24 @@
 import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head'
-import { getWeatherReports, WeatherReport } from './api/weather';
+import { getWeatherReports } from './api/weather';
 import Person from '../components/Person';
+import SortBar from '../components/SortBar';
 import { useAutoUpdatingWeather } from '../lib/hooks';
 
 type Props = {
-	type: 'hot' | 'cold',
+	sortKey: string,
 	reports: WeatherReport[],
 };
 
 export default function Home( props: Props ) {
-	const [ type, setType ] = useState<'hot' | 'cold'>( props.type )
-  const reports = useAutoUpdatingWeather( props.reports, type );
-
-	function toggleType () {
-		setType( 'hot' === type ? 'cold' : 'hot' );
-	}
+	const [ sortKey, setSortKey ] = useState<string>( props.sortKey )
+  const reports = useAutoUpdatingWeather( props.reports, sortKey );
 
 	return (
 		<main>
 			<Head>
-				<title>The {'hot' === type ? 'Hottest' : 'Coldest'} {process.env.FAMILY_NAME}</title>
-				{
-					'hot' === type &&
-						<style dangerouslySetInnerHTML={{ __html: ':root { --color-temp: #fcc; }' }} />
-				}
+				<title>The Mostest {process.env.FAMILY_NAME || ''}</title>
 			</Head>
 			<article>
 				{
@@ -33,11 +26,15 @@ export default function Home( props: Props ) {
 						<Person
 							key={report.name}
 							report={report}
+							sortKey={sortKey}
 						/>
 					) )
 				}
+				<SortBar
+					sortKey={sortKey}
+					setSortKey={setSortKey}
+				/>
 			</article>
-			<footer onClick={() => toggleType()}>🔀</footer>
 		</main>
 	);
 }
@@ -45,8 +42,8 @@ export default function Home( props: Props ) {
 export const getServerSideProps: GetServerSideProps<Props> = async context => {
 	return {
 		props: {
+			sortKey: 'temp',
 			reports: await getWeatherReports(),
-			type: context.req.headers.host?.includes( 'hot' ) ? 'hot' : 'cold',
 		},
 	};
 };

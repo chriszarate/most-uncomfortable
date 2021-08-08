@@ -1,30 +1,51 @@
 .flag {
-  background-color: #666;
+  background-color: transparent;
+  border: solid 1px var(--color-indicator, #666);
   border-radius: 5px;
-  color: white;
-  font-size: 0.75em;
+  color: var(--color-indicator, #666);
+  font-size: 0.8em;
   margin-right: 5px;
-  padding: 2px 4px;
+  padding: 3px 6px;
+  text-align: center;
   vertical-align: middle;
   white-space: nowrap;
 }
 
+.main .flag {
+  background-color: var(--color-indicator);
+  border-width: 3px;
+  color: white;
+  font-size: 1.5em;
+  font-weight: 500;
+  margin: 0;
+  min-width: 25px;
+  padding: 4px 8px;
+}
+
 .ok {
-  background-color: #03A652;
+  --color-indicator: var(--color-green);
 }
 
 .warning {
-  background-color: #FDAF16;
+  --color-indicator: var(--color-yellow);
 }
 
 .high {
-  background-color: #F25822;
+  --color-indicator: var(--color-orange);
 }
 
 .danger {
-  background-color: #D81920;
+  --color-indicator: var(--color-red);
 }
 
 .epic {
-  background-color: #664DA3;
+  --color-indicator: var(--color-purple);
+}
+
+.label {
+  color: var(--color-indicator, #666);
+  font-size: 0.8em;
+  margin-top: 3px;
+  text-align: center;
+  text-transform: uppercase;
 }
