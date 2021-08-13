@@ -43,7 +43,10 @@ footer {
 }
 
 :root {
-  --color-blue: #556688;
+  --color-blue: rgb(72, 144, 255);
+  --color-dark-blue: rgb(72, 72, 216);
+  --color-deep-blue: rgb(72, 0, 216);
+  --color-gray: rgb(112, 112, 112);
   --color-green: #1da91c;
   --color-orange: #cf5c00;
   --color-purple: #88158a;

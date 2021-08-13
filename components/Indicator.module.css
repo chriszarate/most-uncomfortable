@@ -42,6 +42,22 @@
   --color-indicator: var(--color-purple);
 }
 
+.low-warning {
+  --color-indicator: var(--color-blue);
+}
+
+.low-high {
+  --color-indicator: var(--color-dark-blue);
+}
+
+.low-danger {
+  --color-indicator: var(--color-deep-blue);
+}
+
+.low-epic {
+  --color-indicator: var(--color-purple);
+}
+
 .label {
   color: var(--color-indicator, #666);
   font-size: 0.8em;

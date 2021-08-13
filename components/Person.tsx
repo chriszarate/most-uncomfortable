@@ -6,9 +6,12 @@ type Props = {
 	sortKey: string,
 };
 
+type IndicatorInput = React.ComponentProps<typeof Indicator>;
+
 export default function Person ( props: Props ) {
-	const indicators: React.ComponentProps<typeof Indicator>[] = [
+	const indicators: IndicatorInput[] = [
 		{
+			lowThresholds: [50, 40, 30, 10],
 			main: props.sortKey.endsWith( 'temp' ),
 			thresholds: [70, 80, 90, 100],
 			unit: '°F',
@@ -16,6 +19,7 @@ export default function Person ( props: Props ) {
 		},
 		{
 			label: '✱',
+			lowThresholds: [50, 40, 30, 10],
 			main: props.sortKey.endsWith( 'feelsLike' ),
 			mainLabel: 'feels like',
 			thresholds: [70, 80, 90, 100],

@@ -40,9 +40,12 @@ export default function Home( props: Props ) {
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async () => {
+	const reports = await getWeatherReports();
+	const maxTemp = reports.reduce( ( acc, { temp } ) => Math.max( acc, temp ), 0 );
+
 	return {
 		props: {
-			sortKey: '-temp',
+			sortKey: maxTemp >= 75 ? '-temp' : 'temp',
 			reports: await getWeatherReports(),
 		},
 	};
