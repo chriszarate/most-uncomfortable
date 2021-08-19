@@ -2,18 +2,16 @@ import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head'
 import { getWeatherReports } from './api/weather';
-import Person from '../components/Person';
+import Main from '../components/Main';
 import SortBar from '../components/SortBar';
-import { useAutoUpdatingWeather } from '../lib/hooks';
 
 type Props = {
-	sortKey: string,
 	reports: WeatherReport[],
+	sortKey: string,
 };
 
 export default function Home( props: Props ) {
 	const [ sortKey, setSortKey ] = useState<string>( props.sortKey )
-  const reports = useAutoUpdatingWeather( props.reports, sortKey );
 
 	return (
 		<main>
@@ -21,15 +19,10 @@ export default function Home( props: Props ) {
 				<title>The Mostest {process.env.FAMILY_NAME || ''}</title>
 			</Head>
 			<article>
-				{
-					reports.map( report => (
-						<Person
-							key={report.name}
-							report={report}
-							sortKey={sortKey}
-						/>
-					) )
-				}
+				<Main
+					reports={props.reports}
+					sortKey={sortKey}
+				/>
 				<SortBar
 					sortKey={sortKey}
 					setSortKey={setSortKey}
@@ -46,7 +39,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async () => {
 	return {
 		props: {
 			sortKey: maxTemp >= 75 ? '-temp' : 'temp',
-			reports: await getWeatherReports(),
+			reports,
 		},
 	};
 };

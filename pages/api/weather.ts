@@ -1,9 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getPeople } from './people';
-import { notEmpty } from '../../lib/utils';
-import InMemoryCache from '../../lib/in-memory-cache';
-
-const cache = new InMemoryCache( true );
+import cache from '../../lib/in-memory-cache';
 
 export default async function handler(
   _req: NextApiRequest,
@@ -14,12 +11,6 @@ export default async function handler(
 }
 
 async function getRawWeather( location: string ) {
-	const cached = cache.get( location );
-
-	if ( cached ) {
-		return cached;
-	}
-
 	const baseUrl = 'https://api.weatherbit.io/v2.0/current';
 	const params = [
 		`city=${location}`,
@@ -29,16 +20,10 @@ async function getRawWeather( location: string ) {
 
 	const { data: [ weather ] } = await fetch( `${baseUrl}?${params}` ).then( response => response.json() );
 
-	cache.set( location, weather, 3000 );
-
 	return weather;
 }
 
-async function getReportForPerson( person: Person ): Promise<WeatherReport | null> {
-	if ( ! person.name || ! person.location ) {
-		return null;
-	}
-
+async function getReportForPerson( person: Person ): Promise<WeatherReport> {
 	const {
 		app_temp: feelsLike,
 		aqi,
@@ -81,7 +66,13 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport | nul
 
 export async function getWeatherReports(): Promise<WeatherReport[]> {
 	const people = await getPeople();
-	const reports = await Promise.all( people.map( getReportForPerson ) );
+	const reports = await Promise.all(
+		people.map( person => {
+			const cacheKey = `WEATHER_${person.location}`;
+			const fallback = () => getReportForPerson( person );
+			return cache.getWithFallback<WeatherReport>( cacheKey, fallback, 300 );
+		} )
+	);
 
-	return reports.filter( notEmpty );
+	return reports;
 }

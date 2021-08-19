@@ -1,11 +1,12 @@
 declare module 'sheetrock';
 
 type Person = {
-	emoji: string,
 	location: string,
 	name: string,
 	shortLocation: string,
 };
+
+type StoredPerson = Omit<Person, 'shortLocation'>[];
 
 type WeatherReport = Person & {
 	aqi: number,

@@ -11,25 +11,25 @@ type IndicatorInput = React.ComponentProps<typeof Indicator>;
 export default function Person ( props: Props ) {
 	const indicators: IndicatorInput[] = [
 		{
-			lowThresholds: [50, 40, 30, 10],
+			lowThresholds: [60, 40, 30, 10],
 			main: props.sortKey.endsWith( 'temp' ),
-			thresholds: [70, 80, 90, 100],
+			thresholds: [80, 85, 90, 100],
 			unit: '°F',
 			value: props.report.temp,
 		},
 		{
 			label: '✱',
-			lowThresholds: [50, 40, 30, 10],
+			lowThresholds: [60, 40, 30, 10],
 			main: props.sortKey.endsWith( 'feelsLike' ),
 			mainLabel: 'feels like',
-			thresholds: [70, 80, 90, 100],
+			thresholds: [80, 85, 90, 100],
 			unit: '°F',
 			value: props.report.feelsLike,
 		},
 		{
 			label: 'AQI',
 			main: props.sortKey.endsWith( 'aqi' ),
-			thresholds: [ 50, 100, 150, 200 ],
+			thresholds: [ 50, 100, 125, 150 ],
 			value: props.report.aqi,
 		},
 		{

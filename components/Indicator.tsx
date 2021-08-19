@@ -22,29 +22,30 @@ type Props = {
 
 export default function Indicator ( props: Props ) {
 	const [ warning, high, danger, epic ] = props.thresholds;
-	const value = `${Math.round(props.value)}${props.unit || ''}`;
+	const roundedValue = Math.round( props.value );
+	const value = `${roundedValue}${props.unit || ''}`;
 
 	let level = 'ok';
-	if ( props.value >= epic ) {
+	if ( roundedValue >= epic ) {
 		level = 'epic';
-	} else if ( props.value >= danger ) {
+	} else if ( roundedValue >= danger ) {
 		level = 'danger';
-	} else if ( props.value >= high ) {
+	} else if ( roundedValue >= high ) {
 		level = 'high';
-	} else if ( props.value >= warning ) {
+	} else if ( roundedValue >= warning ) {
 		level = 'warning';
 	}
 
 	if ( props.lowThresholds ) {
 		const [ lowWarning, lowHigh, lowDanger, lowEpic ] = props.lowThresholds;
 
-		if ( props.value < lowEpic ) {
+		if ( roundedValue < lowEpic ) {
 			level = 'low-epic';
-		} else if ( props.value < lowDanger ) {
+		} else if ( roundedValue < lowDanger ) {
 			level = 'low-danger';
-		} else if ( props.value < lowHigh ) {
+		} else if ( roundedValue < lowHigh ) {
 			level = 'low-high';
-		} else if ( props.value < lowWarning ) {
+		} else if ( roundedValue < lowWarning ) {
 			level = 'low-warning';
 		}
 	}

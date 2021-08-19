@@ -14,7 +14,7 @@ export function useAutoUpdatingWeather( ssrReports: WeatherReport[], sortKey: st
 			getReports().then( setReports );
 		}
 
-		const timer = setInterval( update, 60 * 1000 );
+		const timer = setInterval( update, ( 60 * 5 + 1 ) * 1000 );
 
 		return () => clearInterval( timer );
 	}, [] );

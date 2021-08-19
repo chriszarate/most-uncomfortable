@@ -5,7 +5,7 @@ type Store = {
 	},
 }
 
-export default class InMemoryCache {
+class InMemoryCache {
 	debug: boolean;
 	store: Store;
 
@@ -14,7 +14,11 @@ export default class InMemoryCache {
 		this.store = {};
 	}
 
-	get( key: string ) {
+	clear() {
+		this.store = {};
+	}
+
+	get<TValue>( key: string ): TValue | null {
 		const stored = this.store[ key ];
 
 		if ( stored ) {
@@ -30,6 +34,18 @@ export default class InMemoryCache {
 		return null;
 	}
 
+	async getWithFallback<TValue>( key: string, fn: () => Promise<TValue>, ttl: number = 300 ): Promise<TValue> {
+		const cached = this.get<TValue>( key );
+		if ( cached ) {
+			return cached;
+		}
+
+		const value = await fn();
+		this.set( key, value, ttl );
+
+		return value;
+	}
+
 	set( key: string, value: any, ttl: number = 300 ) {
 		this.debug && console.log( `Setting cache object "${key}" with ttl ${ttl}` );
 
@@ -39,3 +55,5 @@ export default class InMemoryCache {
 		};
 	}
 }
+
+export default new InMemoryCache( 'production' !== process.env.NODE_ENV );
