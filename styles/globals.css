@@ -26,10 +26,6 @@ a {
   text-underline-offset: 1px;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
 article {
   margin: 0 auto;
   max-width: 575px;

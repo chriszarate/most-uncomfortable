@@ -14,18 +14,21 @@ type SortButtonProps = Props & {
 function SortButton ( props: SortButtonProps ) {
 	const isAsc = props.asc === props.sortKey;
 	const isDesc = props.desc === props.sortKey;
+	const toggledSortKey = isDesc ? props.asc : props.desc;
 
-	function onClick () {
-		props.setSortKey( isDesc ? props.asc : props.desc );
+	function onClick ( evt: React.MouseEvent<HTMLAnchorElement> ) {
+		evt.preventDefault();
+		props.setSortKey( toggledSortKey );
 	}
 
 	return (
-		<span
+		<a
 			className={`${styles.button} ${isAsc ? styles.asc : ''} ${isDesc ? styles.desc : ''}`}
+			href={`?sort=${toggledSortKey}`}
 			onClick={onClick}
 		>
 			{props.name}
-		</span>
+		</a>
 	);
 }
 
