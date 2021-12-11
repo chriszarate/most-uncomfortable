@@ -5,26 +5,22 @@ type Props = {
 	sortKey: string,
 };
 
-type SortButtonProps = Props & {
-	asc: string,
-	desc: string,
+type SortButtonProps = {
+	destination: string,
+	isAsc: boolean,
+	isDesc: boolean,
 	name: string,
 	onClick: ( key: string ) => void,
 };
 
 function SortButton ( props: SortButtonProps ) {
-	const isAsc = props.asc === props.sortKey;
-	const isDesc = props.desc === props.sortKey;
-	const toggledSortKey = isDesc ? props.asc : props.desc;
-	const destination = `?sort=${toggledSortKey}`;
-
 	return (
 		<a
-			className={`${styles.button} ${isAsc ? styles.asc : ''} ${isDesc ? styles.desc : ''}`}
-			href={destination}
-			onClick={function ( evt: React.MouseEvent<HTMLAnchorElement> ): void {
+			className={`${styles.button} ${props.isAsc ? styles.asc : ''} ${props.isDesc ? styles.desc : ''}`}
+			href={props.destination}
+			onClick={function ( evt: React.MouseEvent<HTMLAnchorElement> ) {
 				evt.preventDefault();
-				props.onClick(destination);
+				props.onClick( props.destination );
 			}}
 		>
 			{props.name}
@@ -40,6 +36,19 @@ const sortOptions: { [ key: string ]: string } = {
 	humidity: 'RH%',
 };
 
+function getDestinationSortKey( sortKey: string, currentSortKey: string ): string {
+	const flipped = `-${ sortKey }`;
+	if ( sortKey === currentSortKey ) {
+		return flipped;
+	}
+
+	if ( flipped === currentSortKey ) {
+		return sortKey;
+	}
+
+	return currentSortKey.startsWith( '-' ) ? flipped : sortKey;
+}
+
 export default function SortBar ( props: Props ) {
 	const router = useRouter();
 
@@ -52,12 +61,12 @@ export default function SortBar ( props: Props ) {
 			{
 				Object.keys( sortOptions ).map( key => (
 					<SortButton
-						asc={key}
-						desc={`-${key}`}
+						isAsc={key === props.sortKey}
+						isDesc={`-${ key }` === props.sortKey}
+						destination={`?sort=${ getDestinationSortKey( key, props.sortKey ) }`}
 						key={key}
 						name={sortOptions[ key ]}
 						onClick={onClick}
-						sortKey={props.sortKey}
 					/>
 				) )
 			}
