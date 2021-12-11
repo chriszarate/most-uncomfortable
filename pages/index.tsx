@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head'
 import { getWeatherReports } from './api/weather';
@@ -8,24 +7,22 @@ import SortBar from '../components/SortBar';
 type Props = {
 	reports: WeatherReport[],
 	sortKey: string,
+	title: string,
 };
 
 export default function Home( props: Props ) {
-	const [ sortKey, setSortKey ] = useState<string>( props.sortKey )
-
 	return (
 		<main>
 			<Head>
-				<title>The Mostest {process.env.FAMILY_NAME || ''}</title>
+				<title>{props.title}</title>
 			</Head>
 			<article>
 				<Main
 					reports={props.reports}
-					sortKey={sortKey}
+					sortKey={props.sortKey}
 				/>
 				<SortBar
-					sortKey={sortKey}
-					setSortKey={setSortKey}
+					sortKey={props.sortKey}
 				/>
 			</article>
 		</main>
@@ -33,14 +30,15 @@ export default function Home( props: Props ) {
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async ( { query } ) => {
-	const reports = await getWeatherReports();
+	const { reports, title } = await getWeatherReports();
 	const maxTemp = reports.reduce( ( acc, { temp } ) => Math.max( acc, temp ), 0 );
-	const sortKey = query.sort || maxTemp >= 75 ? '-temp' : 'temp';
+	const sortKey = query.sort ? String( query.sort ) : ( maxTemp >= 75 ? '-temp' : 'temp' );
 
 	return {
 		props: {
 			reports,
 			sortKey,
+			title,
 		},
 	};
 };

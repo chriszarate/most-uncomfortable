@@ -25,3 +25,8 @@ type WeatherReport = Person & {
 	temp: number,
 	uv: number,
 };
+
+type WeatherReports = {
+	reports: WeatherReport[],
+	title: string,
+};

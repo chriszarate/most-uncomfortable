@@ -4,7 +4,7 @@ import cache from '../../lib/in-memory-cache';
 
 export default async function handler(
   _req: NextApiRequest,
-  res: NextApiResponse<WeatherReport[]>
+  res: NextApiResponse<WeatherReports>
 ) {
 	res.status( 200 )
 		.json( await getWeatherReports() );
@@ -64,7 +64,7 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport> {
 	};
 }
 
-export async function getWeatherReports(): Promise<WeatherReport[]> {
+export async function getWeatherReports(): Promise<WeatherReports> {
 	const people = await getPeople();
 	const reports = await Promise.all(
 		people.map( person => {
@@ -74,5 +74,8 @@ export async function getWeatherReports(): Promise<WeatherReport[]> {
 		} )
 	);
 
-	return reports;
+	return {
+		reports,
+		title: `The Mostest ${process.env.FIREBASE_REALTIME_DATABASE_RESOURCE || ''}`,
+	};
 }

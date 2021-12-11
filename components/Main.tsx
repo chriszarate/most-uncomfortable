@@ -1,5 +1,4 @@
 import Person from '../components/Person';
-import Settings from '../components/Settings';
 import { useAutoUpdatingWeather } from '../lib/hooks';
 
 type Props = {
@@ -9,10 +8,6 @@ type Props = {
 
 export default function Main( props: Props ) {
   const reports = useAutoUpdatingWeather( props.reports, props.sortKey );
-
-	if ( 'settings' === props.sortKey ) {
-		return <Settings reports={reports} />;
-	}
 
 	return (
 		<>
