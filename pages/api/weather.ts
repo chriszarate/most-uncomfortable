@@ -10,7 +10,7 @@ export default async function handler(
   res: NextApiResponse<WeatherReports>
 ) {
 	res.status( 200 )
-		.json( await getWeatherReports( req.headers.host ) );
+		.json( await getWeatherReports( req.headers.host || 'unknown' ) );
 }
 
 async function getRawWeather( location: string ) {
