@@ -27,6 +27,7 @@ type WeatherReport = Person & {
 };
 
 type WeatherReports = {
+	defaultSortKey: string,
+	familyName: string,
 	reports: WeatherReport[],
-	title: string,
 };

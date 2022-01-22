@@ -2,12 +2,15 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getPeople } from './people';
 import cache from '../../lib/in-memory-cache';
 
+const familyName = process.env.FAMILY_NAME || 'Family Member';
+const hotHosts = (process.env.HOT_HOSTS || '').split( ',' );
+
 export default async function handler(
-  _req: NextApiRequest,
+  req: NextApiRequest,
   res: NextApiResponse<WeatherReports>
 ) {
 	res.status( 200 )
-		.json( await getWeatherReports() );
+		.json( await getWeatherReports( req.headers.host ) );
 }
 
 async function getRawWeather( location: string ) {
@@ -64,7 +67,8 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport> {
 	};
 }
 
-export async function getWeatherReports(): Promise<WeatherReports> {
+export async function getWeatherReports( hostname: string ): Promise<WeatherReports> {
+	const defaultSortKey = hotHosts.includes( hostname ) ? '-temp' : 'temp';
 	const people = await getPeople();
 	const reports = await Promise.all(
 		people.map( person => {
@@ -75,7 +79,8 @@ export async function getWeatherReports(): Promise<WeatherReports> {
 	);
 
 	return {
+		familyName,
+		defaultSortKey,
 		reports,
-		title: `The Mostest ${process.env.FIREBASE_REALTIME_DATABASE_RESOURCE || ''}`,
 	};
 }

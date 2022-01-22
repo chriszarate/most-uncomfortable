@@ -5,16 +5,32 @@ import Main from '../components/Main';
 import SortBar from '../components/SortBar';
 
 type Props = {
+	familyName: string,
+	hot: boolean,
 	reports: WeatherReport[],
 	sortKey: string,
-	title: string,
 };
 
 export default function Home( props: Props ) {
 	return (
 		<main>
 			<Head>
-				<title>{props.title}</title>
+				{
+					props.hot ?
+						<>
+							<link rel="icon" href="/hot-favicon.ico" sizes="any" />
+							<link rel="apple-touch-icon" href="/hot-apple-touch-icon.png" />
+							<link rel="manifest" href="/hot-site.webmanifest" />
+							<title>The Hottest {props.familyName}</title>
+						</>
+						:
+						<>
+							<link rel="icon" href="/favicon.ico" sizes="any" />
+							<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+							<link rel="manifest" href="/site.webmanifest" />
+							<title>The Coldest {props.familyName}</title>
+						</>
+				}
 			</Head>
 			<article>
 				<Main
@@ -29,16 +45,17 @@ export default function Home( props: Props ) {
 	);
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async ( { query } ) => {
-	const { reports, title } = await getWeatherReports();
-	const maxTemp = reports.reduce( ( acc, { temp } ) => Math.max( acc, temp ), 0 );
-	const sortKey = query.sort ? String( query.sort ) : ( maxTemp >= 75 ? '-temp' : 'temp' );
+export const getServerSideProps: GetServerSideProps<Props> = async ( { req, query } ) => {
+	const hostname = req.headers.host || 'unknown';
+	const { familyName, defaultSortKey, reports } = await getWeatherReports( hostname );
+	const sortKey = query.sort ? String( query.sort ) : defaultSortKey;
 
 	return {
 		props: {
+			familyName,
+			hot: defaultSortKey === '-temp',
 			reports,
 			sortKey,
-			title,
 		},
 	};
 };
