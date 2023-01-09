@@ -1,7 +1,37 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getPeople } from './people';
 import cache from '../../lib/in-memory-cache';
+import {use} from 'react';
 
+type RawWeather = {
+	app_temp: number;
+	aqi: number;
+	lat: number;
+	lon: number;
+	rh: number;
+	temp: number;
+	timezone: string;
+	uv: number;
+	weather: {
+		description: string;
+	};
+};
+
+const defaultRawWeather: RawWeather = {
+	app_temp: 75,
+	aqi: 5,
+	lat: 30,
+	lon: 30,
+	rh: 50,
+	temp: 75,
+	timezone: 'UTC',
+	uv: 5,
+	weather: {
+		description: 'fine i guess (weather api is down)',
+	},
+};
+
+const useDefaultWeather = !! process.env.DISABLE_API_FETCH;
 const familyName = process.env.FAMILY_NAME || 'Family Member';
 const hotHosts = (process.env.HOT_HOSTS || '').split( ',' );
 
@@ -13,15 +43,28 @@ export default async function handler(
 		.json( await getWeatherReports( req.headers.host || 'unknown' ) );
 }
 
-async function getRawWeather( location: string ) {
+async function getRawWeather( location: string ): Promise<RawWeather> {
 	const baseUrl = 'https://api.weatherbit.io/v2.0/current';
 	const params = [
-		`city=${location}`,
+		`city=${encodeURIComponent(location)}`,
 		`units=I`,
 		`key=${process.env.WEATHERBIT_API_KEY}`,
 	].join( '&' );
 
-	const { data: [ weather ] } = await fetch( `${baseUrl}?${params}` ).then( response => response.json() );
+	if ( useDefaultWeather ) {
+		console.log( `Skipping fetching weather for ${location}...` );
+		return defaultRawWeather;
+	}
+
+	const { data: [ weather ] } = await fetch( `${baseUrl}?${params}` )
+		.then( ( response ) => {
+			if ( response.ok ) {
+				return response.json();
+			}
+
+			console.log( `Error fetching weather for ${location}, received ${response.status}` );
+			return { data: [ defaultRawWeather ] };
+		} );
 
 	return weather;
 }
