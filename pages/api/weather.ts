@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getPeople } from './people';
 import cache from '../../lib/in-memory-cache';
-import {use} from 'react';
 
 type RawWeather = {
 	app_temp: number;
@@ -44,6 +43,21 @@ export default async function handler(
 }
 
 async function getRawWeather( location: string ): Promise<RawWeather> {
+	if ( useDefaultWeather ) {
+		console.log( `Skipping fetching weather for ${location}...` );
+		return defaultRawWeather;
+	}
+
+	if ( cache.get( 'too_many_requests' ) ) {
+		console.log( 'Backing off all API requests due to 429...' );
+		return defaultRawWeather;
+	}
+
+	if ( cache.get( 'recent_error' ) ) {
+		console.log( 'Backing off all API requests due to recent error...' );
+		return defaultRawWeather;
+	}
+
 	const baseUrl = 'https://api.weatherbit.io/v2.0/current';
 	const params = [
 		`city=${encodeURIComponent(location)}`,
@@ -51,19 +65,29 @@ async function getRawWeather( location: string ): Promise<RawWeather> {
 		`key=${process.env.WEATHERBIT_API_KEY}`,
 	].join( '&' );
 
-	if ( useDefaultWeather ) {
-		console.log( `Skipping fetching weather for ${location}...` );
-		return defaultRawWeather;
-	}
-
 	const { data: [ weather ] } = await fetch( `${baseUrl}?${params}` )
 		.then( ( response ) => {
 			if ( response.ok ) {
 				return response.json();
 			}
 
-			console.log( `Error fetching weather for ${location}, received ${response.status}` );
-			return { data: [ defaultRawWeather ] };
+			let backOff = 3600;
+			let backOffCacheKey = 'recent_error';
+
+			const retryAfter = parseInt( response.headers.get( 'x-ratelimit-reset' ) ?? '', 10 );
+			if ( retryAfter ) {
+				backOff = Math.round( retryAfter - Date.now() / 1000 );
+				backOffCacheKey = 'too_many_requests';
+			}
+
+			cache.set( backOffCacheKey, true, backOff );
+			console.log( `Error fetching weather for ${location}, received ${response.status}, will try again in ${backOff} seconds` );
+
+			return {
+				data: [ defaultRawWeather ],
+			};
+		} ).catch( () => {
+
 		} );
 
 	return weather;
@@ -113,13 +137,13 @@ async function getReportForPerson( person: Person ): Promise<WeatherReport> {
 export async function getWeatherReports( hostname: string ): Promise<WeatherReports> {
 	const defaultSortKey = hotHosts.includes( hostname ) ? '-temp' : 'temp';
 	const people = await getPeople();
-	const reports = await Promise.all(
-		people.map( person => {
-			const cacheKey = `WEATHER_${person.location}`;
-			const fallback = () => getReportForPerson( person );
-			return cache.getWithFallback<WeatherReport>( cacheKey, fallback, 300 );
-		} )
-	);
+	const reports: WeatherReport[] = [];
+
+	for ( const person of people ) {
+		const cacheKey = `WEATHER_${person.location}`;
+		const fallback = () => getReportForPerson( person );
+		reports.push( await cache.getWithFallback<WeatherReport>( cacheKey, fallback, 3600 ) );
+	}
 
 	return {
 		familyName,
