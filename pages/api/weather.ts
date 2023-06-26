@@ -150,31 +150,22 @@ export async function getWeatherReports(
   hostname: string
 ): Promise<WeatherReports> {
   const cachedReports = await kv.get<WeatherReports>(KV_WEATHER_REPORTS_KEY);
+  const recentError = await kv.get<WeatherError>(KV_RECENT_ERROR_KEY);
+
   if (cachedReports) {
     return {
       ...cachedReports,
-      status: "cached",
+      error: recentError || null,
+      status: recentError ? "error" : "cached",
     };
   }
 
   const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
   const people = await getPeople();
 
-  const recentError = await kv.get<WeatherError>(KV_RECENT_ERROR_KEY);
-  if (recentError) {
-    return {
-      defaultSortKey,
-      error: recentError,
-      familyName,
-      reports: people.map((person) =>
-        getReportForPerson(person, defaultRawWeather)
-      ),
-      status: "error",
-    };
-  }
-
   const reports: WeatherReports = {
     defaultSortKey,
+    error: null,
     familyName,
     reports: await getWeatherReportsForPeople(people),
     status: "fetched",

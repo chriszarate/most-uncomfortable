@@ -28,7 +28,7 @@ type WeatherReport = Person & WeatherData;
 
 type WeatherReports = {
   defaultSortKey: string;
-  error?: WeatherError;
+  error: WeatherError | null;
   familyName: string;
   reports: WeatherReport[];
   status: "cached" | "fetched" | "error";
