@@ -6,9 +6,7 @@ type Person = {
 	shortLocation: string,
 };
 
-type StoredPerson = Omit<Person, 'shortLocation'>[];
-
-type WeatherReport = Person & {
+type WeatherData = {
 	aqi: number,
 	coords: {
 		lat: number,
@@ -26,8 +24,20 @@ type WeatherReport = Person & {
 	uv: number,
 };
 
+type WeatherReport = Person & WeatherData;
+
 type WeatherReports = {
 	defaultSortKey: string,
+	error?: WeatherError,
 	familyName: string,
 	reports: WeatherReport[],
+	status: 'cached' | 'fetched' | 'error',
+};
+
+type WeatherError = {
+	backOff: number,
+	datestring: string,
+	location: string,
+	status: number,
+	timestamp: number,
 };

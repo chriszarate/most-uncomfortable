@@ -1,21 +1,8 @@
-import { initializeApp } from 'firebase/app';
-import {
-	get,
-	getDatabase,
-	ref,
-	set,
-} from 'firebase/database';
-import cache from '../../lib/in-memory-cache';
+import { kv } from '@vercel/kv';
 import type { NextApiRequest, NextApiResponse } from 'next'
-import {notEmpty} from '../../lib/utils';
+import { notEmpty } from '../../lib/utils';
 
-initializeApp( {
-  apiKey: process.env.FIREBASE_API_KEY,
-  databaseURL: process.env.FIREBASE_REALTIME_DATABASE_URL,
-} );
-
-const databaseResource = process.env.FIREBASE_REALTIME_DATABASE_RESOURCE || '';
-const databaseRef = ref( getDatabase(), databaseResource );
+const KV_PEOPLE_KEY = 'people_data';
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,24 +26,6 @@ export default async function handler(
 	res.status( 200 ).json( people );
 }
 
-async function getPeopleFromFirebase(): Promise<Person[]> {
-	const snapshot = await get( databaseRef );
-
-	if ( snapshot.exists() ) {
-		const people: StoredPerson = snapshot.val();
-
-		return people
-			.filter( record => record.name && record.location )
-			.map( record => ( {
-				...record,
-				shortLocation: record.location.replace( /,\s[A-Z]{2}$/, '' ),
-			} ) );
-	}
-
-	console.error( 'No data exists!' );
-	return [];
-}
-
 function validateInput( blob: any ) {
 	const answer1 = blob?.answer1 || 'UNKNOWN';
 	const answer2 = blob?.answer2 || 'UNKNOWN';
@@ -78,24 +47,26 @@ function validateInput( blob: any ) {
 	return people;
 }
 
-function validatePerson( blob: any ): StoredPerson | null {
+function validatePerson( blob: any ): Person | null {
 	if (
 		'string' === typeof blob.location &&
 		'string' === typeof blob.name &&
 		blob.location &&
 		blob.name
 	) {
-		return blob;
+		return {
+			...blob,
+			shortLocation: blob.location.replace( /,\s[A-Z]{2}$/, '' ),
+		};
 	}
 
 	return null;
 }
 
-async function updatePeople( people: StoredPerson[] ): Promise<void> {
-	await set( databaseRef, people );
-	cache.clear();
+async function updatePeople( people: Person[] ): Promise<void> {
+	await kv.set<Person[]>( KV_PEOPLE_KEY, people );
 }
 
-export function getPeople() {
-	return cache.getWithFallback<Person[]>( 'PEOPLE', getPeopleFromFirebase, 3600 );
+export async function getPeople(): Promise<Person[]> {
+	return await kv.get<Person[]>( KV_PEOPLE_KEY ) || [];
 }
