@@ -16,8 +16,8 @@ type RawWeather = {
   };
 };
 
-const KV_RECENT_ERROR_KEY = "recent_error";
-const KV_WEATHER_REPORTS_KEY = "all_weather_reports";
+const KV_LAST_ERROR_KEY = "weatherbit_last_error";
+const KV_WEATHER_REPORTS_KEY = "weatherbit_weather_reports";
 
 const defaultRawWeather: RawWeather = {
   app_temp: 75,
@@ -71,7 +71,7 @@ async function getRawWeather(location: string): Promise<RawWeather> {
       timestamp: Date.now() / 1000,
     };
 
-    await kv.set<WeatherError>(KV_RECENT_ERROR_KEY, error, { px: backOff });
+    await kv.set<WeatherError>(KV_LAST_ERROR_KEY, error, { ex: backOff });
 
     throw new Error(
       `Error fetching weather for ${location}, received ${status}, will try again in ${backOff} seconds`
@@ -150,7 +150,7 @@ export async function getWeatherReports(
   hostname: string
 ): Promise<WeatherReports> {
   const cachedReports = await kv.get<WeatherReports>(KV_WEATHER_REPORTS_KEY);
-  const recentError = await kv.get<WeatherError>(KV_RECENT_ERROR_KEY);
+  const recentError = await kv.get<WeatherError>(KV_LAST_ERROR_KEY);
 
   if (cachedReports) {
     return {
