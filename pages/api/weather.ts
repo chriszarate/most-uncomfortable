@@ -151,22 +151,16 @@ export async function getWeatherReports(
   hostname: string
 ): Promise<WeatherReports> {
   const cachedReports = await kv.get<WeatherReports>(KV_WEATHER_REPORTS_KEY);
-  const recentError = await kv.get<WeatherError>(KV_LAST_ERROR_KEY);
 
   if (cachedReports) {
     return {
       ...cachedReports,
-      error: recentError || null,
-      status: recentError ? "error" : "cached",
+      status: "cached",
     };
   }
 
   const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
   const people = await getPeople();
-
-  const ttl = Math.round(
-    (24 / (DAILY_API_REQUEST_LIMIT / people.length)) * 60 * 60
-  );
 
   const reports: WeatherReports = {
     defaultSortKey,
@@ -174,10 +168,18 @@ export async function getWeatherReports(
     familyName,
     reports: await getWeatherReportsForPeople(people),
     status: "fetched",
-    ttl,
+    ttl: Math.round((24 / (DAILY_API_REQUEST_LIMIT / people.length)) * 60 * 60),
   };
 
-  await kv.set<WeatherReports>(KV_WEATHER_REPORTS_KEY, reports, { ex: ttl });
+  const recentError = await kv.get<WeatherError>(KV_LAST_ERROR_KEY);
+  if (recentError) {
+    reports.error = recentError;
+    reports.ttl = recentError.backOff;
+  }
+
+  await kv.set<WeatherReports>(KV_WEATHER_REPORTS_KEY, reports, {
+    ex: reports.ttl,
+  });
 
   return reports;
 }

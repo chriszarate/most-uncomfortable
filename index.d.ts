@@ -31,7 +31,7 @@ type WeatherReports = {
   error: WeatherError | null;
   familyName: string;
   reports: WeatherReport[];
-  status: "cached" | "error" | "fetched";
+  status: "cached" | "fetched";
   ttl: number;
 };
 
