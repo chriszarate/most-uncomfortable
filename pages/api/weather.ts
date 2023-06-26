@@ -18,6 +18,7 @@ type RawWeather = {
 
 const KV_LAST_ERROR_KEY = "weatherbit_last_error";
 const KV_WEATHER_REPORTS_KEY = "weatherbit_weather_reports";
+const DAILY_API_REQUEST_LIMIT = 50;
 
 const defaultRawWeather: RawWeather = {
   app_temp: 75,
@@ -68,7 +69,7 @@ async function getRawWeather(location: string): Promise<RawWeather> {
       datestring: new Date().toISOString(),
       location,
       status,
-      timestamp: Date.now() / 1000,
+      timestamp: Math.round(Date.now() / 1000),
     };
 
     await kv.set<WeatherError>(KV_LAST_ERROR_KEY, error, { ex: backOff });
@@ -163,15 +164,20 @@ export async function getWeatherReports(
   const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
   const people = await getPeople();
 
+  const ttl = Math.round(
+    (24 / (DAILY_API_REQUEST_LIMIT / people.length)) * 60 * 60
+  );
+
   const reports: WeatherReports = {
     defaultSortKey,
     error: null,
     familyName,
     reports: await getWeatherReportsForPeople(people),
     status: "fetched",
+    ttl,
   };
 
-  await kv.set<WeatherReports>(KV_WEATHER_REPORTS_KEY, reports, { ex: 3600 });
+  await kv.set<WeatherReports>(KV_WEATHER_REPORTS_KEY, reports, { ex: ttl });
 
   return reports;
 }
