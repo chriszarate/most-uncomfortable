@@ -1,43 +1,43 @@
-declare module 'sheetrock';
+declare module "sheetrock";
 
 type Person = {
-	location: string,
-	name: string,
-	shortLocation: string,
+  location: string;
+  name: string;
+  shortLocation: string;
 };
 
 type WeatherData = {
-	aqi: number,
-	coords: {
-		lat: number,
-		long: number,
-	},
-	currentCondition: string,
-	feelsLike: number,
-	humidity: number,
-	links: {
-		location: string,
-		weather: string,
-	},
-	localTime: string,
-	temp: number,
-	uv: number,
+  aqi: number;
+  coords: {
+    lat: number;
+    long: number;
+  };
+  currentCondition: string;
+  feelsLike: number;
+  humidity: number;
+  links: {
+    location: string;
+    weather: string;
+  };
+  localTime: string;
+  temp: number;
+  uv: number;
 };
 
 type WeatherReport = Person & WeatherData;
 
 type WeatherReports = {
-	defaultSortKey: string,
-	error?: WeatherError,
-	familyName: string,
-	reports: WeatherReport[],
-	status: 'cached' | 'fetched' | 'error',
+  defaultSortKey: string;
+  error?: WeatherError;
+  familyName: string;
+  reports: WeatherReport[];
+  status: "cached" | "fetched" | "error";
 };
 
 type WeatherError = {
-	backOff: number,
-	datestring: string,
-	location: string,
-	status: number,
-	timestamp: number,
+  backOff: number;
+  datestring: string;
+  location: string;
+  status: number;
+  timestamp: number;
 };

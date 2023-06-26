@@ -28,11 +28,11 @@
 }
 
 .asc::after {
-  content: ' ▲';
-  display: 'inline';
+  content: " ▲";
+  display: "inline";
 }
 
 .desc::after {
-  content: ' ▼';
-  display: 'inline';
+  content: " ▼";
+  display: "inline";
 }
