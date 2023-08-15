@@ -151,15 +151,16 @@ export async function getWeatherReports(
   hostname: string
 ): Promise<WeatherReports> {
   const cachedReports = await kv.get<WeatherReports>(KV_WEATHER_REPORTS_KEY);
+  const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
 
   if (cachedReports) {
     return {
       ...cachedReports,
+      defaultSortKey,
       status: "cached",
     };
   }
 
-  const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
   const people = await getPeople();
 
   const reports: WeatherReports = {
