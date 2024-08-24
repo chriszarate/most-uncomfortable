@@ -1,38 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { getPeople } from "./people";
-import { kv } from "@vercel/kv";
-
-type RawWeather = {
-  app_temp: number;
-  aqi: number;
-  lat: number;
-  lon: number;
-  rh: number;
-  temp: number;
-  timezone: string;
-  uv: number;
-  weather: {
-    description: string;
-  };
-};
-
-const KV_LAST_ERROR_KEY = "weatherbit_last_error";
-const KV_WEATHER_REPORTS_KEY = "weatherbit_weather_reports";
-const DAILY_API_REQUEST_LIMIT = 50;
-
-const defaultRawWeather: RawWeather = {
-  app_temp: 75,
-  aqi: 5,
-  lat: 30,
-  lon: 30,
-  rh: 50,
-  temp: 75,
-  timezone: "UTC",
-  uv: 5,
-  weather: {
-    description: "fine i guess (weather api is down)",
-  },
-};
+import { getWeather } from "../../lib/weatherbit";
+import { getWeather as getWeatherCom } from "../../lib/weather-com";
 
 const familyName = process.env.FAMILY_NAME || "Family Member";
 const hotHosts = (process.env.HOT_HOSTS || "").split(",");
@@ -44,104 +14,19 @@ export default async function handler(
   res.status(200).json(await getWeatherReports(req.headers.host || "unknown"));
 }
 
-async function getRawWeather(location: string): Promise<RawWeather> {
-  const baseUrl = "https://api.weatherbit.io/v2.0/current";
-  const params = [
-    `city=${encodeURIComponent(location)}`,
-    `units=I`,
-    `key=${process.env.WEATHERBIT_API_KEY}`,
-  ].join("&");
-
-  console.log(`${baseUrl}?${params}`);
-  const response = await fetch(`${baseUrl}?${params}`).catch(() => null);
-
-  if (!response || !response.ok) {
-    const backOff = response
-      ? Math.round(
-          parseInt(response.headers.get("x-ratelimit-reset") ?? "", 10) -
-            Date.now() / 1000
-        )
-      : 1800;
-    const status = response ? response.status : 599;
-
-    const error: WeatherError = {
-      backOff,
-      datestring: new Date().toISOString(),
-      location,
-      status,
-      timestamp: Math.round(Date.now() / 1000),
-    };
-
-    await kv.set<WeatherError>(KV_LAST_ERROR_KEY, error, { ex: backOff });
-
-    throw new Error(
-      `Error fetching weather for ${location}, received ${status}, will try again in ${backOff} seconds`
-    );
-  }
-
-  const {
-    data: [weather],
-  } = await response.json();
-
-  return weather;
-}
-
-function getLocalTime(timeZone: string): string {
-  return new Date()
-    .toLocaleTimeString("en-US", { timeZone })
-    .replace(/^(\d+:\d+):\d+ ([A-z]+)/, "$1$2")
-    .toLowerCase();
-}
-
-function getReportForPerson(person: Person, data: RawWeather): WeatherReport {
-  const {
-    app_temp: feelsLike,
-    aqi,
-    lat,
-    lon: long,
-    rh: humidity,
-    temp,
-    timezone: timeZone,
-    uv,
-    weather: { description },
-  } = data;
-
-  const latlong = `${lat},${long}`;
-
-  return {
-    ...person,
-    aqi,
-    coords: {
-      lat,
-      long,
-    },
-    currentCondition: description.toLowerCase(),
-    feelsLike,
-    humidity,
-    links: {
-      location: `https://www.google.com/maps/@${latlong},12z`,
-      weather: `https://darksky.net/forecast/${latlong}/us12/en`,
-    },
-    localTime: getLocalTime(timeZone),
-    temp,
-    uv,
-  };
-}
-
 async function getWeatherReportsForPeople(
   people: Person[]
 ): Promise<WeatherReport[]> {
   const reports: WeatherReport[] = [];
 
   for (const person of people) {
-    const data = await getRawWeather(person.location).catch(
-      () => defaultRawWeather
-    );
-    const report: WeatherReport = getReportForPerson(person, data);
-    reports.push(report);
+    let report: WeatherReport = await getWeather(person);
 
-    // dont slam
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    if (person.stationId) {
+      report = await getWeatherCom(person, report);
+    }
+
+    reports.push(report);
   }
 
   return reports;
@@ -150,37 +35,13 @@ async function getWeatherReportsForPeople(
 export async function getWeatherReports(
   hostname: string
 ): Promise<WeatherReports> {
-  const cachedReports = await kv.get<WeatherReports>(KV_WEATHER_REPORTS_KEY);
   const defaultSortKey = hotHosts.includes(hostname) ? "-temp" : "temp";
-
-  if (cachedReports) {
-    return {
-      ...cachedReports,
-      defaultSortKey,
-      status: "cached",
-    };
-  }
-
   const people = await getPeople();
 
-  const reports: WeatherReports = {
+  return {
     defaultSortKey,
     error: null,
     familyName,
     reports: await getWeatherReportsForPeople(people),
-    status: "fetched",
-    ttl: Math.round((24 / (DAILY_API_REQUEST_LIMIT / people.length)) * 60 * 60),
   };
-
-  const recentError = await kv.get<WeatherError>(KV_LAST_ERROR_KEY);
-  if (recentError) {
-    reports.error = recentError;
-    reports.ttl = recentError.backOff;
-  }
-
-  await kv.set<WeatherReports>(KV_WEATHER_REPORTS_KEY, reports, {
-    ex: reports.ttl,
-  });
-
-  return reports;
 }

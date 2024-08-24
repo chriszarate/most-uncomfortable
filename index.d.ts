@@ -4,6 +4,7 @@ type Person = {
   location: string;
   name: string;
   shortLocation: string;
+  stationId?: string;
 };
 
 type WeatherData = {
@@ -20,6 +21,8 @@ type WeatherData = {
     weather: string;
   };
   localTime: string;
+  source: string;
+  status: "cached" | "error" | "fetched" | "rate-limited";
   temp: number;
   uv: number;
 };
@@ -31,8 +34,6 @@ type WeatherReports = {
   error: WeatherError | null;
   familyName: string;
   reports: WeatherReport[];
-  status: "cached" | "fetched";
-  ttl: number;
 };
 
 type WeatherError = {
