@@ -20,6 +20,11 @@ export async function set<T>(
   value: T,
   ttl: number = DEFAULT_TTL
 ): Promise<void> {
+  if (null === value) {
+    debugLog(`KV SET: Skipping null value for ${key}`);
+    return;
+  }
+
   debugLog(`KV SET: ${key} ${ttl}`);
   await kv.set<T>(key, value, { ex: ttl });
 }
